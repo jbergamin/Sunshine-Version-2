@@ -1,16 +1,18 @@
 package com.example.android.sunshine.app;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
 
 public class MainActivity extends ActionBarActivity {
+
+    private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,7 +20,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+                    .add(R.id.container, new ForecastFragment())
                     .commit();
         }
     }
@@ -39,25 +41,34 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        } else if (id == R.id.action_view_location) {
+            openPreferredLocationInMap();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
+    private void openPreferredLocationInMap(){
+        // create implicit intent to open map app to display the current user's
+        // preferred location on map
 
-        public PlaceholderFragment() {
-        }
+        // get location from preferences
+        String locationStr = PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default));
+        Uri locationUri = Uri.parse("geo:0,0?").buildUpon()
+                .appendQueryParameter("q", locationStr)
+                .build();
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(locationUri);
 
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
+        if(intent.resolveActivity(getPackageManager()) != null){
+            startActivity(intent);
+        } else{
+            Log.d(LOG_TAG, "Couldn't call " + locationStr + ", no application installed to open and display location.");
         }
     }
+
 }
