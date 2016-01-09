@@ -112,122 +112,6 @@ public class ForecastFragment extends Fragment {
         updateWeather();
     }
 
-    /**
-     * AsyncTask to fetch weather data from cloud so this does not run on the main thread
-     * Returns an array of string forecasts
-     */
-    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
-        @Override
-        protected void onPostExecute(String[] weatherDataArray) {
-            super.onPostExecute(weatherDataArray);
-            if(weatherDataArray != null) {
-                mForecastAdapter.clear();
-                for(String dayForecast: weatherDataArray){
-                    mForecastAdapter.add(dayForecast);
-                }
-                // new data is back from server. Yay!
-            }
-        }
-
-        @Override
-        public String[] doInBackground(String... params) {
-            // Get real weather data from OpenWeatherMap.org
-
-            // These two need to be declared outside the try/catch
-            // so that they can be closed in the finally block.
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
-            // Will contain the raw JSON response as a string.
-            String forecastJsonStr = null;
-
-            String format = "json";
-            // always get metric and convert to imperial on-the-fly if user changes preference
-            String units = "metric";
-            int numDays = 7;
-            String apikey = "e3474b153f1ce91fa030d3a275248f0f";
-
-            try {
-                // Construct the URL for the OpenWeatherMap query
-                // Possible parameters are avaiable at OWM's forecast API page, at
-                // http://openweathermap.org/API#forecast
-                final String FORECAST_BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?";
-                final String ZIP_PARAM = "zip";
-                final String FORMAT_PARAM = "mode";
-                final String UNITS_PARAM = "units";
-                final String DAYS_PARAM = "cnt";
-                final String APIKEY_PARAM = "APPID";
-
-                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                        .appendQueryParameter(ZIP_PARAM, params[0])
-                        .appendQueryParameter(FORMAT_PARAM, format)
-                        .appendQueryParameter(UNITS_PARAM, units)
-                        .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
-                        .appendQueryParameter(APIKEY_PARAM, apikey)
-                        .build();
-
-                URL url = new URL(builtUri.toString());
-
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                forecastJsonStr = buffer.toString();
-
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the weather data, there's no point in attemping
-                // to parse it.
-                return null;
-            } finally{
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream ", e);
-                    }
-                }
-            }
-
-            // try to parse weather data from JSON string
-            try {
-                String[] weatherData = getWeatherDataFromJson(forecastJsonStr, numDays);
-                return weatherData;
-            } catch (JSONException e) {
-                Log.e(LOG_TAG,"Error ", e);
-            }
-
-            // this will only happen if there was an error
-            return null;
-        }
-    }
-
-
 
     // helper code from GitHub gist that helps parse and format weather info from JSON string
 
@@ -348,6 +232,6 @@ public class ForecastFragment extends Fragment {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String locationZip = sharedPreferences.getString(getString(R.string.pref_location_key),
                 getString(R.string.pref_location_default));
-        new FetchWeatherTask().execute(locationZip);
+        new FetchWeatherTask(getContext(), mForecastAdapter).execute(locationZip);
     }
 }
