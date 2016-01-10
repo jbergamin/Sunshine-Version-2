@@ -13,6 +13,8 @@ import android.view.MenuItem;
 public class MainActivity extends ActionBarActivity {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
+    private String mLocation;
+    final String FORECASTFRAGMENT_TAG = "forecastfragment";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,9 +22,11 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new ForecastFragment())
+                    .add(R.id.container, new ForecastFragment(), FORECASTFRAGMENT_TAG)
                     .commit();
         }
+
+        mLocation = Utility.getPreferredLocation(this);
     }
 
     @Override
@@ -51,13 +55,25 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onResume(){
+        if(!Utility.getPreferredLocation(this).equals(mLocation)){
+            ForecastFragment ff =
+                    (ForecastFragment) getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
+            ff.onLocationChanged();
+            mLocation = Utility.getPreferredLocation(this);
+            Log.v(LOG_TAG, "Updating location");
+        }
+
+        super.onResume();
+    }
+
     private void openPreferredLocationInMap(){
         // create implicit intent to open map app to display the current user's
         // preferred location on map
 
         // get location from preferences
-        String locationStr = PreferenceManager.getDefaultSharedPreferences(this).getString(getString(R.string.pref_location_key),
-                getString(R.string.pref_location_default));
+        String locationStr = Utility.getPreferredLocation(this);
         Uri locationUri = Uri.parse("geo:0,0?").buildUpon()
                 .appendQueryParameter("q", locationStr)
                 .build();

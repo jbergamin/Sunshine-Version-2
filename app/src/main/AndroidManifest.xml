@@ -12,7 +12,9 @@
 
         <provider
             android:authorities="com.example.android.sunshine.app"
-            android:name="com.example.android.sunshine.app.data.WeatherProvider" >
+            android:name="com.example.android.sunshine.app.data.WeatherProvider"
+            android:enabled="true"
+            android:exported="false">
 
         </provider>
 
