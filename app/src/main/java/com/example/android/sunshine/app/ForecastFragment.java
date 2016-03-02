@@ -1,5 +1,7 @@
 package com.example.android.sunshine.app;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -8,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.content.CursorLoader;
+import android.telecom.Call;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,6 +33,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private final int CURSOR_LOADER_ID = 48;
     private final String LOG_TAG = ForecastFragment.class.getSimpleName();
+
+    private Callback mCallback;
+
+    public interface Callback {
+        void onItemSelected(Uri dateUri);
+    }
 
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -69,7 +78,23 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         super.onActivityCreated(savedInstanceState);
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
         setHasOptionsMenu(true);
+
     }
+
+    @Override
+    public void onAttach(Context context){
+        super.onAttach(context);
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        Activity activity = getActivity();
+        try {
+            mCallback = (Callback) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+    }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -109,13 +134,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 // CursorAdapter returns a cursor at the correct position for getItem(), or null
                 // if it cannot seek to that position.
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+                String locationSetting = Utility.getPreferredLocation(getActivity());
                 if (cursor != null) {
-                    String locationSetting = Utility.getPreferredLocation(getActivity());
-                    Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .setData(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                                    locationSetting, cursor.getLong(COL_WEATHER_DATE)
-                            ));
-                    startActivity(intent);
+                    Uri dateUri = WeatherContract.WeatherEntry
+                            .buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE));
+                    mCallback.onItemSelected(dateUri);
                 }
             }
         });

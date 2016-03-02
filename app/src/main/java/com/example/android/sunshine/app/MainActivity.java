@@ -10,20 +10,33 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private String mLocation;
-    final String FORECASTFRAGMENT_TAG = "forecastfragment";
+    final String DETAILFRAGMENT_TAG = "DFTAG";
+    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new ForecastFragment(), FORECASTFRAGMENT_TAG)
-                    .commit();
+        if(findViewById(R.id.weather_detail_container) != null){
+            // The detail container will only be present in large-screen layouts.
+            // If this view is present then we are in two-pane mode.
+            mTwoPane = true;
+
+            // Show the detail view in this activity by adding or replacing the detail fragment
+            // using a fragment transaction.
+            if(savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.weather_detail_container, new DetailFragment(), DETAILFRAGMENT_TAG)
+                        .commit();
+            }
+        } else {
+            // The weather detail container is not present
+            // so we are not in two-pane mode.
+            mTwoPane = false;
         }
 
         mLocation = Utility.getPreferredLocation(this);
@@ -58,14 +71,41 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public void onResume(){
         if(!Utility.getPreferredLocation(this).equals(mLocation)){
-            ForecastFragment ff =
-                    (ForecastFragment) getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
-            ff.onLocationChanged();
             mLocation = Utility.getPreferredLocation(this);
+
+            ForecastFragment ff =
+                    (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
+            ff.onLocationChanged();
+
+            DetailFragment df =
+                    (DetailFragment) getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG);
+            if(df != null){
+                df.onLocationChanged(mLocation);
+            }
             Log.v(LOG_TAG, "Updating location");
         }
 
         super.onResume();
+    }
+
+    public void onItemSelected(Uri dateUri){
+        if(mTwoPane){
+            // In two-pane mode.  Show the detail view in this
+            // activity by adding or replacing the detail fragment.
+            Bundle args = new Bundle();
+            args.putParcelable(DetailFragment.DETAIL_URI, dateUri);
+
+            DetailFragment f = new DetailFragment();
+            f.setArguments(args);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.weather_detail_container, f, DETAILFRAGMENT_TAG)
+                    .commit();
+
+        } else {
+            Intent intent = new Intent(this, DetailActivity.class);
+            intent.setData(dateUri);
+            startActivity(intent);
+        }
     }
 
     private void openPreferredLocationInMap(){
