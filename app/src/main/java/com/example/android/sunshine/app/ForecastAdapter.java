@@ -19,6 +19,8 @@ public class ForecastAdapter extends CursorAdapter {
     private final int VIEW_TYPE_TODAY = 0;
     private final int VIEW_TYPE_FUTURE_DAY = 1;
 
+    private boolean mUseTodayView = true;
+
     public ForecastAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
     }
@@ -47,9 +49,13 @@ public class ForecastAdapter extends CursorAdapter {
                 " - " + highAndLow;
     }
 
+    public void setUseTodayView(boolean useTodayView){
+        mUseTodayView = useTodayView;
+    }
+
     @Override
     public int getItemViewType(int position){
-        return (position == 0) ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE_DAY;
+        return (position == 0 && mUseTodayView) ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE_DAY;
     }
 
     @Override
@@ -104,8 +110,13 @@ public class ForecastAdapter extends CursorAdapter {
         viewHolder.iconView.setImageResource(drawableId);
 
         // read date from cursor and get friendly day string
+        // if in two-pane mode then only display the 'Today' for the today item, not the full date
         long date = cursor.getLong(ForecastFragment.COL_WEATHER_DATE);
-        String day = Utility.getFriendlyDayString(context, date);
+        String day = Utility.getDayName(context, date);
+        if(!day.equals(Utility.getDayName(context, System.currentTimeMillis()))
+                || getItemViewType(cursor.getPosition()) == VIEW_TYPE_TODAY){
+            day = Utility.getFriendlyDayString(context, date);
+        }
         viewHolder.dateView.setText(day);
 
         // read forecast and set forecast description in UI

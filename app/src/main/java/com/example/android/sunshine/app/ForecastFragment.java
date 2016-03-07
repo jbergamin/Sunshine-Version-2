@@ -23,6 +23,8 @@ import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 
+import java.util.List;
+
 /**
  * A fragment to display the weather forecast.
  */
@@ -31,10 +33,17 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private ForecastAdapter mForecastAdapter;
     private ListView mForecastListView;
 
+    // Id for cursor loader.  This can be any number, doesn't matter.
     private final int CURSOR_LOADER_ID = 48;
     private final String LOG_TAG = ForecastFragment.class.getSimpleName();
 
+    // Key for saving the position in savedInstanceState.
+    private final String STATE_POSITION = "position";
+
     private Callback mCallback;
+    private int mPosition = -1;
+
+    private boolean mUseTodayView = true;
 
     public interface Callback {
         void onItemSelected(Uri dateUri);
@@ -95,6 +104,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState){
+        if(mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(STATE_POSITION, mPosition);
+        }
+        super.onSaveInstanceState(outState);
+    }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -119,6 +136,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
         // ForecastAdapter to populate listView with data from a cursor
         mForecastAdapter = new ForecastAdapter(getContext(), null, 0);
+        mForecastAdapter.setUseTodayView(mUseTodayView);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -140,8 +158,17 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                             .buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE));
                     mCallback.onItemSelected(dateUri);
                 }
+
+                // store position in member variable
+                mPosition = position;
             }
         });
+
+
+        // restore scroll position if necessary
+        if(savedInstanceState != null && savedInstanceState.containsKey(STATE_POSITION)) {
+            mPosition = savedInstanceState.getInt(STATE_POSITION);
+        }
 
         return rootView;
     }
@@ -160,7 +187,30 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader loader, Cursor data) {
         mForecastAdapter.swapCursor(data);
-        Log.v(LOG_TAG, "swapped cursor in mForecastAdapter");
+
+        // restore selection if in two-pane mode
+        if(mPosition != ListView.INVALID_POSITION && !mUseTodayView){
+            // restore scroll position
+            mForecastListView.setItemChecked(mPosition, true);
+            mForecastListView.setSelection(mPosition);
+        } else {
+            // select the first item if in two-pane mode.
+            // we know we are in two-pane mode if we are not using the special today view
+            if(!mUseTodayView){
+                mForecastListView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mForecastListView.setItemChecked(0, true);
+                        mForecastListView.setSelection(0);
+                        // call performItemClick() so the details fragment will be created
+                        int position = mForecastListView.getCheckedItemPosition();
+                        mForecastListView.performItemClick(mForecastListView.getAdapter().getView(position, null, null), 0, 0);
+                    }
+                });
+
+            }
+
+        }
     }
 
     @Override
@@ -181,5 +231,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLocationChanged(){
         updateWeather();
         getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+    }
+
+    public void setUseTodayView(boolean useTodayView){
+        mUseTodayView = useTodayView;
+
+        if(mForecastAdapter != null){
+            mForecastAdapter.setUseTodayView(useTodayView);
+        }
     }
 }

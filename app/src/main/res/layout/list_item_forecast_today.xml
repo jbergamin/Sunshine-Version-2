@@ -4,26 +4,39 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:minHeight="?android:attr/listPreferredItemHeight"
-    android:padding="16dp"
-    android:gravity="center_vertical">
+    android:padding="0dp"
+    android:gravity="center_vertical"
+    android:background="@color/sunshine_blue" >
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:layout_marginLeft="60dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp" >
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/detail_date_textview" />
+            android:id="@+id/detail_date_textview"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="?android:attr/textColorPrimaryInverse"
+            android:fontFamily="sans-serif-condensed" />
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/detail_high_textview" />
+            android:id="@+id/detail_high_textview"
+            android:textColor="?android:attr/textColorPrimaryInverse"
+            android:fontFamily="sans-serif-light"
+            android:textSize="72sp" />
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/detail_low_textview" />
+            android:id="@+id/detail_low_textview"
+            android:textColor="?android:attr/textColorPrimaryInverse"
+            android:fontFamily="sans-serif-light"
+            android:textSize="36sp"
+            android:layout_marginLeft="8dp" />
 
     </LinearLayout>
 
@@ -32,7 +45,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:layout_marginRight="16dp"
+        android:gravity="center_horizontal" >
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -40,7 +54,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/detail_forecast_textview" />
+            android:id="@+id/detail_forecast_textview"
+            android:textColor="?android:attr/textColorPrimaryInverse"
+            android:fontFamily="sans-serif-condensed"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
     </LinearLayout>
 
