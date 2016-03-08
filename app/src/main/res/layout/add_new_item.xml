@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingLeft="8dp"
-        android:text="@string/add_new_location"
+        android:text="@string/new_location"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:fontFamily="sans-serif-light" />
 

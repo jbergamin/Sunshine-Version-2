@@ -1,5 +1,6 @@
 package com.example.android.sunshine.app;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -17,12 +18,15 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -96,6 +100,44 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+                builder.setTitle(R.string.add_location);
+
+                // edit text view for zip code input
+                final EditText editText = new EditText(v.getContext());
+                editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                editText.setHint(R.string.zip_code);
+
+                builder.setView(editText);
+                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                builder.setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // validate zip code
+                        String zipCode = editText.getText().toString();
+                        if(zipCode.length() == 5){
+                            // we have a valid zip code
+                            // Hooray! The user isn't an idiot
+                            // now let's add that new location to the db and update everything
+                            Utility.setPreferredLocation(getApplicationContext(), zipCode);
+                            updateLocation();
+                            restartLoader();
+                        } else {
+                            // the user doesn't know what a zip code is
+                            // let's tell them they are stupid
+                            Toast.makeText(getApplicationContext(), R.string.invalid_zip_message, Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+
+                    }
+                });
+
+                builder.show();
+
             }
         });
         mDrawerList.setFooterDividersEnabled(true);
@@ -109,6 +151,7 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
                 String newLocationSetting = cursor.getString(COL_LOCATION_SETTING);
                 Utility.setPreferredLocation(getApplicationContext(), newLocationSetting);
                 updateLocation();
+                restartLoader();
 
                 // Highlight the selected item and close the drawer
                 mDrawerList.setItemChecked(position, true);
@@ -191,12 +234,12 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        // set up loader to load location from db
+        // set up loader to load locations from db
         getSupportLoaderManager().initLoader(LOCATION_LOADER_ID, null, this);
 
         mLocation = Utility.getPreferredLocation(this);
 
-        // NOTE: this is only temporary
+        // TODO this is only temporary
         // fetch weather from internet and update everything
         updateLocation();
     }
@@ -294,7 +337,8 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         }
 
         do {
-            if(data.getString(COL_LOCATION_SETTING).equals(mLocation)){
+            String locCol = data.getString(COL_LOCATION_SETTING);
+            if(locCol.equals(mLocation)){
                 int position = data.getPosition();
                 mDrawerList.setItemChecked(position, true);
                 mDrawerList.setSelection(position);
@@ -340,6 +384,7 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
 
     private void updateLocation(){
         mLocation = Utility.getPreferredLocation(this);
+        Log.v(LOG_TAG, "update location: " + mLocation);
 
         ForecastFragment ff =
                 (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
@@ -353,7 +398,6 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
     }
 
     private void restartLoader(){
-        Log.v(LOG_TAG, "restarting loader");
         getSupportLoaderManager().restartLoader(LOCATION_LOADER_ID, null, this);
     }
 

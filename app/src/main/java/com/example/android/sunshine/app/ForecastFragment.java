@@ -174,6 +174,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     @Override
+    public void onResume(){
+        restartLoader();
+        super.onResume();
+    }
+
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         String locationSetting = Utility.getPreferredLocation(getContext());
         Uri uri = WeatherContract.WeatherEntry
@@ -230,7 +236,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     public void onLocationChanged(){
         updateWeather();
-        getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+        restartLoader();
     }
 
     public void setUseTodayView(boolean useTodayView){
@@ -239,5 +245,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         if(mForecastAdapter != null){
             mForecastAdapter.setUseTodayView(useTodayView);
         }
+    }
+
+    private void restartLoader(){
+        getLoaderManager().destroyLoader(CURSOR_LOADER_ID);
+        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
     }
 }

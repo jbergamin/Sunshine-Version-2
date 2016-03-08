@@ -27,6 +27,7 @@ import android.preference.PreferenceManager;
 import android.text.format.Time;
 import android.util.Log;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
@@ -45,7 +46,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
-public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
+public class FetchWeatherTask extends AsyncTask<String, Void, Boolean> {
 
     private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
@@ -248,7 +249,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(String... params) {
+    protected Boolean doInBackground(String... params) {
 
         // If there's no zip code, there's nothing to look up.  Verify size of params.
         if (params.length == 0) {
@@ -320,12 +321,13 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
             getWeatherDataFromJson(forecastJsonStr, locationQuery);
 
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Error ", e);
+            Log.e(LOG_TAG, "Error fetching weather data", e);
             // If the code didn't successfully get the weather data, there's no point in attempting
             // to parse it.
-            return null;
+            return true;
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
+            return true;
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -339,5 +341,12 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
             }
         }
         return null;
+    }
+
+    @Override
+    protected void onPostExecute(Boolean result){
+        if (result != null && result){
+            Toast.makeText(mContext.getApplicationContext(), R.string.connection_error, Toast.LENGTH_SHORT).show();
+        }
     }
 }

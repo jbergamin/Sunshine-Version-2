@@ -15,7 +15,12 @@
     <string name="cannot_delete_last_message">Cannot delete only location</string>
     <string name="drawer_open">Location drawer open</string>
     <string name="drawer_close">Location drawer close</string>
-    <string name="add_new_location">Location</string>
+    <string name="new_location">Location</string>
+    <string name="add_location">Add New Location</string>
+    <string name="zip_code">Zip code</string>
+    <string name="add">Add</string>
+    <string name="invalid_zip_message">Invalid zip code</string>
+    <string name="connection_error">Cannot fetch weather</string>
 
     <!-- strings for location preference -->
     <!-- label for location preference [CHAR LIMIT = 30] -->
