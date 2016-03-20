@@ -10,7 +10,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.content.CursorLoader;
-import android.telecom.Call;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,8 +21,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
-
-import java.util.List;
+import com.example.android.sunshine.app.service.SunshineService;
 
 /**
  * A fragment to display the weather forecast.
@@ -228,9 +226,16 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
      * Helper method that updates ListView with weather data from query
      */
     private void updateWeather(){
-        // execute FetchWeatherTask
         String location = Utility.getPreferredLocation(getContext());
-        new FetchWeatherTask(getContext()).execute(location);
+
+//        // execute FetchWeatherTask
+//        new FetchWeatherTask(getContext()).execute(location);
+
+        // run SunshineService
+        Intent intent = new Intent(getContext(), SunshineService.class);
+        intent.putExtra(SunshineService.LOCATION_SETTING_EXTRA, location);
+        getContext().startService(intent);
+
         Log.v(LOG_TAG, "updateWeather() called");
     }
 
