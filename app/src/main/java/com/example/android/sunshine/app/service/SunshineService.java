@@ -1,12 +1,16 @@
 package com.example.android.sunshine.app.service;
 
+import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.text.format.Time;
 import android.util.Log;
 
@@ -43,6 +47,8 @@ public class SunshineService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        // let's fetch the weather from the magical internet
+        // then update our database accordingly (through the content provider)
 
         String locationQuery = intent.getStringExtra(LOCATION_SETTING_EXTRA);
         if(locationQuery == null){
@@ -323,6 +329,23 @@ public class SunshineService extends IntentService {
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
         }
+
         return null;
+    }
+
+    static public class AlarmReceiver extends BroadcastReceiver {
+        private final String LOG_TAG = AlarmReceiver.class.getSimpleName();
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // run SunshineService
+            String location = intent.getStringExtra(SunshineService.LOCATION_SETTING_EXTRA);
+
+            Intent serviceIntent = new Intent(context, SunshineService.class);
+            serviceIntent.putExtra(SunshineService.LOCATION_SETTING_EXTRA, location);
+            context.startService(serviceIntent);
+
+            Log.v(LOG_TAG, "Alarm triggered, " + location);
+        }
     }
 }

@@ -1,11 +1,14 @@
 package com.example.android.sunshine.app;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -22,6 +25,7 @@ import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.service.SunshineService;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 /**
  * A fragment to display the weather forecast.
@@ -226,15 +230,18 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
      * Helper method that updates ListView with weather data from query
      */
     private void updateWeather(){
-        String location = Utility.getPreferredLocation(getContext());
-
-//        // execute FetchWeatherTask
-//        new FetchWeatherTask(getContext()).execute(location);
-
-        // run SunshineService
-        Intent intent = new Intent(getContext(), SunshineService.class);
-        intent.putExtra(SunshineService.LOCATION_SETTING_EXTRA, location);
-        getContext().startService(intent);
+//        String location = Utility.getPreferredLocation(getContext());
+//
+//        // set alarm
+//        AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+//
+//        Intent intent = new Intent(getContext(), SunshineService.AlarmReceiver.class);
+//        intent.putExtra(SunshineService.LOCATION_SETTING_EXTRA, location);
+//
+//        PendingIntent alarmIntent = PendingIntent.getBroadcast(getContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+//        alarmManager.set(AlarmManager.RTC_WAKEUP,
+//                System.currentTimeMillis() + 5 * 1000, alarmIntent);
+        SunshineSyncAdapter.syncImmediately(getContext());
 
         Log.v(LOG_TAG, "updateWeather() called");
     }
