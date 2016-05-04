@@ -350,12 +350,14 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         // location setting doesn't match any location in db
         // so we set the location setting to the first location in the db
         Log.w(LOG_TAG, "location setting does not match any location in db");
-        data.moveToFirst();
-        String newLocation = data.getString(COL_LOCATION_SETTING);
-        Utility.setPreferredLocation(this, newLocation);
-        // restart loader and update location
-        restartLoader();
-        updateLocation();
+        mDrawerList.clearChoices();
+
+//        data.moveToFirst();
+//        String newLocation = data.getString(COL_LOCATION_SETTING);
+//        Utility.setPreferredLocation(this, newLocation);
+//        // restart loader and update location
+//        restartLoader();
+//        updateLocation();
     }
 
     @Override

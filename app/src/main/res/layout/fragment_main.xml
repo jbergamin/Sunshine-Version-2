@@ -10,4 +10,24 @@
         android:id="@+id/listview_forecast"
         style="@style/ForecastListStyle" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="120dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:fontFamily="sans-serif-condensed"
+        android:text="@string/forecast_view_error"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:id="@+id/empty" />
+
+    <!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+        <!--android:orientation="vertical" android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:minHeight="120dp"-->
+        <!--android:gravity="center"-->
+        <!--android:id="@android:id/empty">        -->
+
+    <!--</LinearLayout>-->
+
 </FrameLayout>

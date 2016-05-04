@@ -22,6 +22,8 @@
     <string name="invalid_zip_message">Invalid zip code</string>
     <string name="connection_error">Cannot fetch weather</string>
 
+    <string name="forecast_view_error">Error loading forecast</string>
+
     <!-- strings for location preference -->
     <!-- label for location preference [CHAR LIMIT = 30] -->
     <string name="pref_location_label">Location</string>
