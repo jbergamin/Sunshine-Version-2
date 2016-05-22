@@ -31,6 +31,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+import com.example.android.sunshine.app.sync.SunshineSyncService;
 
 
 public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback,
@@ -59,6 +61,15 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
     static final int COL_LOCATION_ID = 0;
     static final int COL_LOCATION_SETTING = 1;
     static final int COL_LOCATION_CITY_NAME = 2;
+
+    // columns for map loader
+    private static final String[] MAP_COLUMNS = {
+            WeatherContract.LocationEntry.COLUMN_COORD_LAT,
+            WeatherContract.LocationEntry.COLUMN_COORD_LONG
+    };
+    // indices
+    static final int COL_LOCATION_LAT = 0;
+    static final int COL_LOCATION_LONG = 1;
 
 
     @Override
@@ -239,9 +250,10 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
 
         mLocation = Utility.getPreferredLocation(this);
 
-        // TODO this is only temporary
-        // fetch weather from internet and update everything
-        updateLocation();
+
+        // Initialize the Sync Adapter.
+        // This will set up periodic syncing and will immediately sync if needed.
+        SunshineSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override
@@ -371,11 +383,26 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
 
         // get location from preferences
         String locationStr = Utility.getPreferredLocation(this);
+        String coordStr;
+        Cursor coordCursor = this.getContentResolver().query(WeatherContract.LocationEntry.CONTENT_URI, MAP_COLUMNS,
+                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?", new String[] {locationStr}, null);
+        if(coordCursor != null){
+            coordCursor.moveToFirst();
+            Log.v(LOG_TAG, "coordCursor: " + coordCursor.getString(COL_LOCATION_LAT) + ", " + coordCursor.getString(COL_LOCATION_LONG));
+            coordStr = coordCursor.getString(COL_LOCATION_LAT) + ", " + coordCursor.getString(COL_LOCATION_LONG);
+        } else {
+            Log.e(LOG_TAG, "Could not get coordinates because I failed to find location in database.");
+            return;
+        }
+
         Uri locationUri = Uri.parse("geo:0,0?").buildUpon()
-                .appendQueryParameter("q", locationStr)
+                .appendQueryParameter("q", coordStr)
                 .build();
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(locationUri);
+
+        // close cursor
+        coordCursor.close();
 
         if(intent.resolveActivity(getPackageManager()) != null){
             startActivity(intent);
